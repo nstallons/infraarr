@@ -1,0 +1,50 @@
+---
+- name: Update host, remove podman and runc, add docker-ce repo, install and start docker.
+  hosts: docker
+  become: yes
+  become_user: "username"
+  become_method: sudo
+  tasks:
+  - name: upgrade all packages
+    ansible.builtin.dnf:
+      name: "*"
+      state: latest
+
+  - name: Remove podman and runc
+    ansible.builtin.dnf:
+      name: 
+        - podman
+        - runc
+      state: absent
+
+  - name: Add docker repository
+    ansible.builtin.command: 
+      cmd: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    become: yes
+    become_method: sudo
+
+  - name: Install docker, python and pip
+    ansible.builtin.dnf:
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-compose-plugin
+        - python
+        - pip
+        - nfs-utils
+      state: present
+      disable_gpg_check: yes
+
+  - name: Install pip docker and docker-Compose
+    ansible.builtin.pip:
+      name: 
+        - docker
+        - docker-compose
+    become: yes
+    become_method: sudo
+    
+  - name: Start Docker
+    ansible.builtin.systemd:
+      name: docker
+      state: started

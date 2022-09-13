@@ -1,0 +1,45 @@
+---
+- name: Build users, groups and permissions.
+  hosts: mediacenter
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Ensure group "mediacenter" exists with correct gid
+    ansible.builtin.group:
+      name: mediacenter
+      state: present
+      gid: 13000 
+
+  - name: Add user gluetun, qbittorrent, prowlarr, readarr, sonarr, radarr, and  with a specific uid and a primary group of 'mediacenter'
+    ansible.builtin.user:
+      name: '{{ item.name  }}'
+      uid: '{{ item.uid  }}'
+      state: present
+      group: mediacenter
+    loop:
+      - { name: 'gluetun', uid: '13001'}
+      - { name: 'qbittorrent', uid: '13002'}
+      - { name: 'prowlarr', uid: '13003'}
+      - { name: 'readarr', uid: '13004'}
+      - { name: 'sonarr', uid: '13005'}
+      - { name: 'radarr', uid: '13006'}
+
+  - name: Create a directory if it does not exist
+    ansible.builtin.file:
+      path: '/home/"username"/docker/{{ item.path }}-config'
+      state: directory
+      mode: '0775'
+      owner: '{{ item.owner }}'
+      group: mediacenter
+
+    loop:
+      - { path: 'gluetun', owner: 'gluetun'}
+      - { path: 'qbittorrent', owner: 'qbittorrent'}
+      - { path: 'prowlarr', owner: 'prowlarr'}
+      - { path: 'readarr', owner: 'readarr'}
+      - { path: 'sonarr', owner: 'sonarr'}
+      - { path: 'radarr', owner: 'radarr'}
+
+  - name: Grab UID and output it to .env docker file.
+    ansible.builtin.shell: echo "UID=$(id -u)" >> ./infraarr/.env
+    become_user: "username"

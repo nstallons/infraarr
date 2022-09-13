@@ -1,0 +1,8 @@
+[docker]
+192.168.2.221
+
+[mediacenter]
+192.168.2.221
+
+[all:vars]
+ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
